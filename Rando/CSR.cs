@@ -13,11 +13,11 @@ namespace ConnectionSettingsRando
         {
             ConnectionsRegistry.Register(new AutomatedSettingsProvider<T>(name, getter, overrideSettings));
         }
-        public static void Register<T>(
+        public static void Register(
             string name,
             Func<Random, RandomizationStats> randomize)
         {
-            ConnectionsRegistry.Register(new CustomSettingsProvider<T>(name, randomize));
+            ConnectionsRegistry.Register(new CustomSettingsProvider(name, randomize));
         }
         public static void RandomizeAll(Random rng)
         {

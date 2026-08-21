@@ -24,7 +24,7 @@ namespace ConnectionSettingsRando
         }
     }
 
-    internal class CustomSettingsProvider<T>(
+    internal class CustomSettingsProvider(
         string name,
         Func<Random, RandomizationStats> randomize) : ISettingsProvider
     {
