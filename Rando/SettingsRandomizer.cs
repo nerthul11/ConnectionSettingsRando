@@ -24,12 +24,10 @@ namespace ConnectionSettingsRando
             stats = new();
             return ((T)RandomizeObject(settings, rng, [providerName]), stats);
         }
-        public static bool Skip(MemberInfo member, Type memberType, string memberName, IReadOnlyList<string> path)
+        public static bool Skip(Type memberType, string memberName, IReadOnlyList<string> path)
         {
             string name = string.Join(".", path.Append(memberName));
             if (RandoInterop.OptOutManager.GetRule(name) is OptOutRule rule && rule.Action == OptOutAction.Exclude)
-                return true;
-            else if (member.GetCustomAttributes().Any(attr => attr.GetType().Name == "CSRIgnoreAttribute"))
                 return true;
             else if (memberType == typeof(bool))
                 return !RandoInterop.Settings.IncludeBooleans;
@@ -41,8 +39,7 @@ namespace ConnectionSettingsRando
                 return false;
         }
 
-        public static bool Skip(MemberInfo member, IReadOnlyList<string> path) =>
-            Skip(member, GetMemberType(member), member.Name, path);
+        public static bool Skip(MemberInfo member, IReadOnlyList<string> path) => Skip(GetMemberType(member), member.Name, path);
         private object RandomizeValue(MemberInfo member, object value, Random rng, IReadOnlyList<string> path)
         {
             if (Skip(member, path))
@@ -50,6 +47,10 @@ namespace ConnectionSettingsRando
                 TrackSkip(member.Name, path);
                 return value;
             }
+
+            // For attributes with CSRIgnore, the mod doesn't keep track or log it as skipped or randomized and assumes the setting doesn't exist.
+            if (member.GetCustomAttributes().Any(attr => attr.GetType().Name == "CSRIgnoreAttribute"))
+                return value;
 
             Type type = GetMemberType(member);
             if (type == typeof(bool))
