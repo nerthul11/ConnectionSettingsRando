@@ -129,7 +129,7 @@ This also works with nested settings objects.
 
 Any member annotated with an attribute named "CSRIgnoreAttribute" will be silently ignored by CSR. Connections providing their own randomization code may wish to handle these themselves.
 
-To avoid a hard dependency on CSR for such attributes, CSR does not define this attribute. Connections should define their own local copy instead.
+CSR does have an empty template of the attribute available for use, but to avoid a hard dependency on CSR for such attributes, connections should define their own local copy instead.
 
 ## Randomization Rules
 

@@ -24,10 +24,12 @@ namespace ConnectionSettingsRando
             stats = new();
             return ((T)RandomizeObject(settings, rng, [providerName]), stats);
         }
-        public static bool Skip(Type memberType, string memberName, IReadOnlyList<string> path)
+        public static bool Skip(MemberInfo member, Type memberType, string memberName, IReadOnlyList<string> path)
         {
             string name = string.Join(".", path.Append(memberName));
             if (RandoInterop.OptOutManager.GetRule(name) is OptOutRule rule && rule.Action == OptOutAction.Exclude)
+                return true;
+            else if (member.GetCustomAttributes().Any(attr => attr.GetType().Name == "CSRIgnoreAttribute"))
                 return true;
             else if (memberType == typeof(bool))
                 return !RandoInterop.Settings.IncludeBooleans;
@@ -38,12 +40,11 @@ namespace ConnectionSettingsRando
             else
                 return false;
         }
-        public static bool Skip(MemberInfo member, IReadOnlyList<string> path) => Skip(GetMemberType(member), member.Name, path);
+
+        public static bool Skip(MemberInfo member, IReadOnlyList<string> path) =>
+            Skip(member, GetMemberType(member), member.Name, path);
         private object RandomizeValue(MemberInfo member, object value, Random rng, IReadOnlyList<string> path)
         {
-            if (member.GetCustomAttributes().Any(attr => attr.GetType().Name == "CSRIgnoreAttribute"))
-                return value;
-
             if (Skip(member, path))
             {
                 TrackSkip(member.Name, path);
@@ -74,21 +75,15 @@ namespace ConnectionSettingsRando
                 return value;
             }
         }
-
-        private static T Clone<T>(T source)
-            where T : new()
+        public static void CopyTo<T>(T source, T destination)
         {
-            T clone = new();
-
             foreach (MemberInfo member in GetMembers(typeof(T)))
             {
                 SetValue(
                     member,
-                    clone,
-                    GetValue(member, source!));
+                    destination,
+                    GetValue(member, source));
             }
-
-            return clone;
         }
         private object RandomizeBool(MemberInfo member, IReadOnlyList<string> path, Random rng)
         {
